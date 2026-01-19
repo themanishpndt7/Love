@@ -1,0 +1,669 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love App - My Forever</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #fbcfe8 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: default;
+        }
+        
+        .font-handwriting {
+            font-family: 'Dancing Script', cursive;
+        }
+        
+        /* Animations */
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        
+        @keyframes musicBar {
+            0%, 100% { height: 100%; }
+            50% { height: 30%; }
+        }
+        
+        @keyframes fall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(800px) rotate(360deg); opacity: 0; }
+        }
+        
+        @keyframes pingFade {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+        
+        @keyframes beat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Animation Classes */
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+        .animate-music-bar { animation: musicBar 1s infinite ease-in-out; }
+        .animate-fall { animation: fall linear forwards; }
+        .animate-ping-fade { animation: pingFade 0.8s ease-out forwards; }
+        .animate-beat { animation: beat 1s infinite; }
+        .animate-bounce { animation: bounce 2s infinite; }
+        .animate-bounce-slow { animation: bounce 3s infinite; }
+        .animate-spin-slow { animation: spin 4s linear infinite; }
+        .animate-pulse { animation: pulse 2s infinite; }
+        .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        
+        /* Custom Styles */
+        .phone-case {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .music-bar {
+            width: 4px;
+            background-color: #f43f5e;
+        }
+        
+        .click-effect {
+            position: fixed;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        /* Chrome-specific fixes */
+        .backdrop-blur-sm {
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        
+        .backdrop-blur-md {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        
+        .backdrop-blur-xl {
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        
+        .blur-xl {
+            filter: blur(24px);
+            -webkit-filter: blur(24px);
+        }
+        
+        .gold-shadow {
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+        }
+        
+        /* Responsive */
+        @media (max-height: 700px) {
+            .phone-container {
+                height: 90vh !important;
+            }
+        }
+        
+        /* Remove tap highlight on mobile */
+        button {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="w-full p-4 flex items-center justify-center">
+        <!-- App will be rendered here -->
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // App State
+        const state = {
+            activeTab: 0,
+            isPlaying: false,
+            showHeartRain: false,
+            showLetter: false,
+            openedGift: null,
+            greeting: '',
+            clickEffects: [],
+            currentTime: ''
+        };
+        
+        // Time-based greeting
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            if (hour < 12) state.greeting = 'Good Morning, Jaan ☀️';
+            else if (hour < 18) state.greeting = 'Good Afternoon, Baby 🌤️';
+            else state.greeting = 'Good Evening, My Love 🌙';
+        }
+        
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            state.currentTime = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+        }
+        
+        // Initialize time and greeting
+        updateGreeting();
+        updateTime();
+        setInterval(updateTime, 60000);
+        
+        // Handle global click for heart effects
+        function handleGlobalClick(e) {
+            if (e.target.closest('button') || e.target.closest('.modal')) return;
+            
+            const id = Date.now();
+            const newEffect = { 
+                id, 
+                x: e.clientX, 
+                y: e.clientY,
+                type: ['❤️', '💖', '💝', '🌹'][Math.floor(Math.random() * 4)]
+            };
+            state.clickEffects.push(newEffect);
+            
+            setTimeout(() => {
+                state.clickEffects = state.clickEffects.filter(effect => effect.id !== id);
+                render();
+            }, 1000);
+            
+            render();
+        }
+        
+        function triggerHeartRain() {
+            state.showHeartRain = true;
+            setTimeout(() => {
+                state.showHeartRain = false;
+                render();
+            }, 5000);
+            render();
+        }
+        
+        // Gift Content Data
+        const giftContents = {
+            1: {
+                title: "For You 🌹",
+                icon: '<span class="text-4xl animate-bounce">🌹</span>',
+                text: "Ek phool uske liye jo khud ek phool hai.",
+                sub: "You are my most beautiful rose."
+            },
+            2: {
+                title: "My Heart ❤️",
+                icon: '<i data-lucide="heart" class="w-12 h-12 text-red-600 fill-current animate-beat"></i>',
+                text: "Sambhal ke rakhna, ab ye tumhara hai.",
+                sub: "Forever yours."
+            },
+            3: {
+                title: "A Promise 💍",
+                icon: '<div class="relative"><div class="w-8 h-8 rounded-full border-4 border-yellow-400 gold-shadow"></div><div class="absolute -top-3 left-1/2 transform -translate-x-1/2 text-blue-400">💎</div></div>',
+                text: "Hamesha saath nibhaane ka vaada.",
+                sub: "Till my last breath."
+            }
+        };
+        
+        // Tabs Data
+        const tabs = [
+            {
+                id: 0,
+                title: "Dil Ka Haal",
+                icon: '<i data-lucide="heart" class="w-5 h-5"></i>',
+                theme: "rose",
+                content: `
+                    <div class="space-y-6 text-center relative z-10">
+                        <div class="inline-block p-3 rounded-full bg-rose-100 mb-2 animate-pulse">
+                            <i data-lucide="heart" class="w-8 h-8 text-rose-500 fill-current"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-rose-900 font-handwriting">Mera Haal-e-Dil</h2>
+                        <div class="relative p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-rose-100 shadow-sm group hover:scale-[1.02] transition-transform duration-300">
+                            <p class="text-xl font-handwriting leading-loose text-rose-800">
+                                "Dil ka jo haal h,<br/>
+                                Wo <span class="text-rose-600 font-bold">AAPSE</span> kese byaan kru,<br/>
+                                Keh du <span class="text-rose-600 font-bold">AAPSE</span> y dil m rkhu,<br/>
+                                Boliye na ky kru..."
+                            </p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 1,
+                title: "Aapka Dil",
+                icon: '<i data-lucide="sparkles" class="w-5 h-5"></i>',
+                theme: "purple",
+                content: `
+                    <div class="space-y-6 text-center relative z-10">
+                        <div class="inline-block p-3 rounded-full bg-purple-100 mb-2">
+                            <i data-lucide="sparkles" class="w-8 h-8 text-purple-600 animate-spin-slow"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-purple-900 font-handwriting">Mera Sahara</h2>
+                        <div class="relative p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-purple-100 shadow-sm">
+                            <p class="text-xl font-handwriting leading-loose text-purple-900">
+                                "Dil jo <span class="text-purple-600 font-bold">AAPKA</span> h, kitna pyaara h<br/>
+                                Seedha sa, sachcha sa, dil ka sahaara h..."
+                            </p>
+                            <p class="mt-4 text-purple-700 font-medium text-sm border-t border-purple-200 pt-3">
+                                ❤️ Aapka dil sabse sundar hai ❤️
+                            </p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 2,
+                title: "Wafaa",
+                icon: '<i data-lucide="stars" class="w-5 h-5"></i>',
+                theme: "blue",
+                content: `
+                    <div class="space-y-6 text-center relative z-10">
+                        <div class="inline-block p-3 rounded-full bg-blue-100 mb-2">
+                            <i data-lucide="stars" class="w-8 h-8 text-blue-600"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-blue-900 font-handwriting">Meri Dua</h2>
+                        <div class="relative p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-blue-100 shadow-sm">
+                            <p class="text-xl font-handwriting leading-loose text-blue-900">
+                                "Rishta bhale hi naam ka na ho<br/>
+                                Par ehsaas dil se juda na ho<br/>
+                                <span class="text-blue-600 font-bold">AAP</span> hi meri dua..."
+                            </p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 3,
+                title: "Surprises",
+                icon: '<i data-lucide="gift" class="w-5 h-5"></i>',
+                theme: "emerald",
+                content: `
+                    <div class="space-y-6 text-center relative z-10 w-full">
+                        <div class="inline-block p-3 rounded-full bg-emerald-100 mb-2">
+                            <i data-lucide="gift" class="w-8 h-8 text-emerald-600 animate-bounce"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-emerald-900 font-handwriting">Pick a Gift, My Love</h2>
+                        <div class="grid grid-cols-3 gap-3 mt-4">
+                            ${[1, 2, 3].map(num => `
+                                <button onclick="openGift(${num})" class="aspect-square bg-gradient-to-br from-emerald-400 to-teal-600 rounded-xl shadow-lg flex items-center justify-center transform hover:scale-105 active:scale-95 transition-all duration-300 relative group overflow-hidden">
+                                    <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="w-2 h-full bg-yellow-300/80"></div>
+                                        <div class="h-2 w-full bg-yellow-300/80 absolute"></div>
+                                    </div>
+                                    <span class="text-3xl filter drop-shadow-md z-10">🎁</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                        <p class="text-emerald-800 text-sm mt-2 italic">Tap a box to unwrap...</p>
+                    </div>
+                `
+            },
+            {
+                id: 4,
+                title: "Fidaa",
+                icon: '<i data-lucide="music" class="w-5 h-5"></i>',
+                theme: "fuchsia",
+                content: `
+                    <div class="space-y-6 text-center relative z-10">
+                        <div class="inline-block p-3 rounded-full bg-fuchsia-100 mb-2">
+                            <i data-lucide="music" class="w-8 h-8 text-fuchsia-600"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-fuchsia-900 font-handwriting">Aap Par Fidaa</h2>
+                        <div class="relative p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-fuchsia-100 shadow-sm">
+                            <p class="text-xl font-handwriting leading-loose text-fuchsia-900">
+                                "Jaane kyon dil y mera h AAPKE pyaar m<br/>
+                                Laakhon wajahen basi h is ikraar m<br/>
+                                H y <span class="text-fuchsia-600 font-bold">AAP</span> par fidaa..."
+                            </p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 5,
+                title: "Qaraar",
+                icon: '<i data-lucide="message-circle" class="w-5 h-5"></i>',
+                theme: "red",
+                content: `
+                    <div class="space-y-6 text-center relative z-10">
+                        <div class="inline-block p-3 rounded-full bg-red-100 mb-2">
+                            <i data-lucide="message-circle" class="w-8 h-8 text-red-600"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-red-900 font-handwriting">Sirf Aapko Kahoon</h2>
+                        <div class="relative p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-red-100 shadow-sm">
+                            <p class="text-xl font-handwriting leading-loose text-red-900">
+                                "Dil ke khayalon m, meethe sawaalon m<br/>
+                                Lafz naye bunoon, sirf <span class="text-red-600 font-bold">AAPKO</span> kahoon..."
+                            </p>
+                            <div class="mt-6 flex flex-col items-center gap-3">
+                                <p class="text-sm text-red-500 opacity-80 mb-1">Make a wish & tap below</p>
+                                <button onclick="triggerHeartRain()" class="w-full py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl shadow-lg transform active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 group">
+                                    <i data-lucide="heart" class="w-5 h-5 fill-current"></i>
+                                    Send My Love
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `
+            }
+        ];
+        
+        // Theme colors mapping
+        const themeColors = {
+            rose: "from-rose-50 to-pink-100 text-rose-600",
+            purple: "from-purple-50 to-violet-100 text-purple-600",
+            blue: "from-blue-50 to-indigo-100 text-blue-600",
+            emerald: "from-emerald-50 to-teal-100 text-emerald-600",
+            fuchsia: "from-fuchsia-50 to-pink-100 text-fuchsia-600",
+            red: "from-red-50 to-rose-100 text-red-600"
+        };
+        
+        // Event handlers exposed globally
+        window.setActiveTab = (index) => {
+            state.activeTab = index;
+            render();
+            lucide.createIcons();
+        };
+        
+        window.togglePlay = () => {
+            state.isPlaying = !state.isPlaying;
+            render();
+        };
+        
+        window.openGift = (num) => {
+            state.openedGift = num;
+            render();
+            lucide.createIcons();
+        };
+        
+        window.closeGift = () => {
+            state.openedGift = null;
+            render();
+        };
+        
+        window.acceptGift = () => {
+            state.openedGift = null;
+            triggerHeartRain();
+        };
+        
+        window.toggleLetter = () => {
+            state.showLetter = !state.showLetter;
+            render();
+            lucide.createIcons();
+        };
+        
+        window.closeLetter = () => {
+            state.showLetter = false;
+            render();
+        };
+        
+        // Render functions
+        function renderGiftModal() {
+            if (!state.openedGift) return '';
+            const gift = giftContents[state.openedGift];
+            return `
+                <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in modal">
+                    <div class="bg-white rounded-3xl p-8 max-w-sm w-full relative shadow-2xl text-center border-4 border-pink-100 transform scale-100 transition-all">
+                        <button onclick="closeGift()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 hover:scale-110 transition-transform">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                        <div class="mb-6 flex justify-center h-20 items-center">
+                            ${gift.icon}
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2 font-handwriting">${gift.title}</h3>
+                        <p class="text-lg text-gray-600 mb-2">${gift.text}</p>
+                        <p class="text-sm text-pink-500 font-medium tracking-widest uppercase">${gift.sub}</p>
+                        <button onclick="acceptGift()" class="mt-8 px-6 py-3 bg-gradient-to-r from-pink-400 to-rose-500 text-white rounded-full font-medium shadow-lg hover:shadow-xl active:scale-95 transition-all transform hover:scale-105">
+                            Accept with Love
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderHeartRain() {
+            if (!state.showHeartRain) return '';
+            return `
+                <div class="absolute inset-0 z-50 pointer-events-none overflow-hidden">
+                    ${Array.from({ length: 30 }).map((_, i) => `
+                        <div class="absolute animate-fall"
+                            style="
+                                left: ${Math.random() * 100}%;
+                                animation-duration: ${Math.random() * 2 + 3}s;
+                                animation-delay: ${Math.random() * 2}s;
+                                opacity: ${Math.random() * 0.5 + 0.5};
+                                font-size: ${Math.random() * 24 + 12}px;
+                                color: ${['#ff6b6b', '#ff8787', '#fa5252', '#e03131'][Math.floor(Math.random()*4)]};
+                            ">
+                            ${['❤️', '💖', '💝', '🌹'][Math.floor(Math.random()*4)]}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        function renderLetterModal() {
+            if (!state.showLetter) return '';
+            return `
+                <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in modal">
+                    <div class="bg-[#fff9f0] w-full max-w-sm rounded shadow-2xl p-8 relative border-2 border-gray-200">
+                        <button onclick="closeLetter()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 hover:scale-110 transition-transform">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 w-16 h-8 bg-red-800/20 blur-xl rounded-full"></div>
+                        <div class="border-b border-gray-300 pb-4 mb-4 text-center">
+                            <h3 class="font-handwriting text-3xl text-gray-800">My Secret Note</h3>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest mt-1">For your eyes only</p>
+                        </div>
+                        <div class="space-y-4 text-gray-700 font-serif leading-relaxed text-lg">
+                            <p>Mere Pyaare,</p>
+                            <p>
+                                Kabhi kabhi lafz kam pad jaate hain ye batane ke liye ki tum mere liye kya ho. 
+                                Tum sirf meri mohabbat nahi, meri aadat, meri zaroorat, aur mera sukoon ho.
+                            </p>
+                            <p>
+                                Thank you for being in my life.
+                            </p>
+                            <p class="text-right mt-6 font-handwriting text-xl text-rose-600">- Yours Forever</p>
+                        </div>
+                        <div class="absolute bottom-4 right-8 opacity-10 transform rotate-12">
+                            <i data-lucide="heart" class="w-24 h-24 text-red-500"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderClickEffects() {
+            return state.clickEffects.map(effect => `
+                <div class="click-effect animate-ping-fade"
+                    style="
+                        left: ${effect.x}px;
+                        top: ${effect.y}px;
+                        transform: translate(-50%, -50%);
+                        font-size: 20px;
+                        color: ${effect.type === '❤️' ? '#ef4444' : 
+                                effect.type === '💖' ? '#ec4899' :
+                                effect.type === '💝' ? '#f97316' : '#dc2626'};
+                    ">
+                    ${effect.type}
+                </div>
+            `).join('');
+        }
+        
+        // Main render function
+        function render() {
+            const currentTab = tabs[state.activeTab];
+            const themeColor = themeColors[currentTab.theme];
+            
+            document.getElementById('app').innerHTML = `
+                <div class="min-h-screen bg-gray-200 flex items-center justify-center p-4 select-none" onclick="handleGlobalClick(event)">
+                    <!-- Phone Case -->
+                    <div class="w-full max-w-[400px] h-[850px] phone-container bg-white rounded-[3rem] shadow-2xl overflow-hidden border-[8px] border-gray-900 relative flex flex-col phone-case">
+                        
+                        <!-- Dynamic Background -->
+                        <div class="absolute inset-0 bg-gradient-to-br ${themeColor.split(' ')[0]} transition-all duration-700 ease-in-out">
+                            <div class="absolute top-0 left-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
+                                <div class="absolute top-[10%] left-[20%] w-32 h-32 bg-white rounded-full mix-blend-overlay blur-xl animate-blob"></div>
+                                <div class="absolute top-[30%] right-[20%] w-32 h-32 bg-pink-300 rounded-full mix-blend-overlay blur-xl animate-blob animation-delay-2000"></div>
+                                <div class="absolute bottom-[20%] left-[30%] w-32 h-32 bg-purple-300 rounded-full mix-blend-overlay blur-xl animate-blob animation-delay-4000"></div>
+                            </div>
+                        </div>
+
+                        <!-- Notch & Status -->
+                        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 h-7 w-32 bg-gray-900 rounded-b-2xl z-50"></div>
+                        <div class="h-8 w-full z-50 flex justify-between px-6 pt-2 text-xs font-medium text-gray-600">
+                            <span>100% ❤️</span>
+                            <span class="font-semibold">${state.currentTime}</span>
+                            <span>📶 5G</span>
+                        </div>
+
+                        <!-- App Header -->
+                        <div class="relative z-20 px-6 pt-10 pb-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">My Forever</p>
+                                    <h1 class="text-lg font-bold text-gray-800">${state.greeting}</h1>
+                                </div>
+                                <button onclick="toggleLetter()" class="w-10 h-10 rounded-full bg-white/50 backdrop-blur-md shadow-sm flex items-center justify-center border border-white animate-bounce-slow hover:scale-110 transition-transform">
+                                    <i data-lucide="mail" class="w-5 h-5 text-rose-500"></i>
+                                </button>
+                            </div>
+
+                            <!-- Music Player -->
+                            <div class="bg-white/40 backdrop-blur-md rounded-2xl p-3 flex items-center gap-3 border border-white/50 shadow-sm">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center ${state.isPlaying ? 'bg-rose-500 text-white' : 'bg-gray-200 text-gray-500'} transition-colors">
+                                    <i data-lucide="music" class="w-5 h-5"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-bold text-gray-800 truncate">Dil Ka Qaraar.mp3</p>
+                                    <div class="flex items-center gap-1 h-3">
+                                        ${state.isPlaying ? `
+                                            <div class="music-bar animate-music-bar"></div>
+                                            <div class="music-bar animate-music-bar animation-delay-100" style="height: 66%"></div>
+                                            <div class="music-bar animate-music-bar animation-delay-200"></div>
+                                        ` : '<p class="text-xs text-gray-500">Tap to play</p>'}
+                                    </div>
+                                </div>
+                                <button onclick="togglePlay()" class="p-2 bg-white rounded-full shadow-sm hover:shadow-md transition-shadow">
+                                    ${state.isPlaying ? '<i data-lucide="pause" class="w-4 h-4"></i>' : '<i data-lucide="play" class="w-4 h-4 ml-0.5"></i>'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Main Content -->
+                        <div class="flex-1 relative z-10 px-4 overflow-hidden flex flex-col justify-center pb-20">
+                            <div class="transition-all duration-500 transform">
+                                <div class="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-xl p-1 min-h-[420px] border border-white/60 relative overflow-hidden flex flex-col">
+                                    <div class="absolute top-0 right-0 w-24 h-24 ${themeColor.split(' ')[0]} opacity-50 rounded-bl-[4rem]"></div>
+                                    <div class="flex-1 w-full flex flex-col items-center justify-center p-6">
+                                        ${currentTab.content}
+                                    </div>
+                                    <div class="pb-4 w-full flex justify-center gap-2">
+                                        ${tabs.map((_, idx) => `
+                                            <div class="h-1.5 rounded-full transition-all duration-300 ${state.activeTab === idx ? 'w-6 bg-gray-800' : 'w-1.5 bg-gray-300'}"></div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Tab Bar -->
+                        <div class="absolute bottom-6 left-4 right-4 bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg p-2 z-30 border border-white/50">
+                            <div class="flex justify-between items-center px-1">
+                                ${tabs.map((tab, index) => `
+                                    <button onclick="setActiveTab(${index})" class="relative p-3 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 min-w-[50px] ${state.activeTab === index ? 'bg-gradient-to-b from-white to-gray-50 text-gray-900 -translate-y-4 shadow-lg border border-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50/50'}">
+                                        ${tab.icon}
+                                        ${state.activeTab === index ? `
+                                            <span class="text-[9px] font-bold absolute -bottom-4 w-max animate-fade-in-up">${tab.title}</span>
+                                        ` : ''}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Overlays -->
+                        ${renderHeartRain()}
+                        ${renderClickEffects()}
+                    </div>
+                    
+                    <!-- Modals -->
+                    ${renderGiftModal()}
+                    ${renderLetterModal()}
+                    
+                    <!-- Instructions -->
+                    <div class="fixed bottom-4 left-4 text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm z-40">
+                        💡 Click anywhere for love hearts!
+                    </div>
+                </div>
+            `;
+            
+            // Re-initialize Lucide icons after render
+            lucide.createIcons();
+        }
+        
+        // Auto-advance tabs
+        setInterval(() => {
+            state.activeTab = (state.activeTab + 1) % tabs.length;
+            render();
+        }, 10000);
+        
+        // Initial render
+        render();
+        
+        // Update greeting every hour
+        setInterval(updateGreeting, 3600000);
+        
+        // Make functions globally available
+        window.handleGlobalClick = handleGlobalClick;
+        window.triggerHeartRain = triggerHeartRain;
+    </script>
+</body>
+</html>
